@@ -1,0 +1,65 @@
+services:
+
+  web-app:
+    entrypoint:
+      - sleep
+      - infinity
+    image: docker/dev-environments-wolo-web-app:stable-1
+    init: true
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - .:/app
+    build: ./app/Project
+    extra_hosts:
+      - "local.app.wolo.codes:127.0.0.1"
+      - "interim.app.wolo.codes:127.0.0.1"
+      - "public.app.wolo.codes:127.0.0.1"
+    restart: always
+    networks:
+      dan:
+        ipv4_address: 10.10.0.2
+        
+  web-site:
+    entrypoint:
+      - sleep
+      - infinity
+    image: docker/dev-environments-wolo-web-site:stable-1
+    init: true
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - .:/app
+    build: ./site/Project
+    extra_hosts:
+      - "local.web.wolo.codes:127.0.0.1"
+      - "interim.web.wolo.codes:127.0.0.1"
+      - "public.web.wolo.codes:127.0.0.1"
+    restart: always
+    networks:
+      dan:
+        ipv4_address: 10.10.0.3
+
+  nginx-proxy:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./conf:/etc/nginx/conf:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web-app
+      - web-site
+    restart: always
+    networks:
+      - dan
+      
+networks:
+  dan:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.10.0.0/24
