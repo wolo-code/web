@@ -1,9 +1,6 @@
 services:
 
   web-app:
-    entrypoint:
-      - sleep
-      - infinity
     image: docker/dev-environments-wolo-web-app:stable-1
     init: true
     volumes:
@@ -22,9 +19,6 @@ services:
         ipv4_address: 10.10.0.2
         
   web-site:
-    entrypoint:
-      - sleep
-      - infinity
     image: docker/dev-environments-wolo-web-site:stable-1
     init: true
     volumes:
