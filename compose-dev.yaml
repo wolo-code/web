@@ -16,7 +16,7 @@ services:
       - "local.app.wolo.codes:127.0.0.1"
       - "interim.app.wolo.codes:127.0.0.1"
       - "public.app.wolo.codes:127.0.0.1"
-    restart: always
+    #restart: always
     networks:
       dan:
         ipv4_address: 10.10.0.2
@@ -37,7 +37,7 @@ services:
       - "local.web.wolo.codes:127.0.0.1"
       - "interim.web.wolo.codes:127.0.0.1"
       - "public.web.wolo.codes:127.0.0.1"
-    restart: always
+    #restart: always
     networks:
       dan:
         ipv4_address: 10.10.0.3
@@ -53,7 +53,7 @@ services:
     depends_on:
       - web-app
       - web-site
-    restart: always
+    #restart: always
     networks:
       - dan
       
