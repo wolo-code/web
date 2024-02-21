@@ -1,0 +1,25 @@
+#! /bin/bash
+
+/app/Tiggu/Script/build.sh /app/App/Project
+/app/Tiggu/Script/build.sh /app/Site/Project
+
+shopt -s extglob
+
+copy_dot_dirs() {
+  local source_dir=$1
+  local dest_dir=$2
+  
+  shopt -s extglob
+
+  cp -r $source_dir/* $dest_dir
+  for dir in "$source_dir"/.!(.|git); do
+    if [ -d "$dir" ] || [ -f "$dir" ]; then
+      cp -r "$dir" "$dest_dir"
+    fi
+  done
+}
+
+copy_dot_dirs /app/App/Project/interim ./interim
+copy_dot_dirs /app/App/Project/public ./public
+copy_dot_dirs /app/Site/Project/interim ./interim
+copy_dot_dirs /app/Site/Project/public ./public

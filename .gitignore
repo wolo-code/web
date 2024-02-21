@@ -1,2 +1,1 @@
-conf/server.crt
-conf/server.key
+nginx/conf/
