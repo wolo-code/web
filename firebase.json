@@ -1,0 +1,126 @@
+{
+	"hosting": {
+		"public": "public",
+		"ignore": [
+			".htaccess",
+			".git/**"
+		],
+		"appAssociation": "AUTO",
+		"headers": [
+			{
+				"source": "**/*.@(eot|otf|ttf|ttc|woff|font.css)",
+				"headers": [
+					{
+						"key": "Access-Control-Allow-Origin",
+						"value": "*"
+					}
+				]
+			},
+			{
+				"source": "**/*.@(jpg|jpeg|gif|png|svg)",
+				"headers": [
+					{
+						"key": "Cache-Control",
+						"value": "max-age=7200"
+					}
+				]
+			},
+			{
+				"source" : "404.html",
+				"headers" : [ {
+						"key" : "Cache-Control",
+						"value" : "max-age=300"
+					}
+				]
+			}
+		],
+		"rewrites": [
+			{
+				"source": "/api/encode",
+				"function": "encode"
+			},
+			{
+				"source": "/api/decode",
+				"function": "decode"
+			},
+			{
+				"source": "/api/add-city",
+				"function": "add_city"
+			},
+			{
+				"source": "/api/cityByIp",
+				"function": "cityByIp"
+			},
+			{
+				"source": "/console",
+				"destination": "/console.html"
+			},
+			{
+				"source": "/about.json",
+				"destination": "/about/index.json"
+			},
+			{
+				"source": "/features.json",
+				"destination": "/features/index.json"
+			},
+			{
+				"source": "/case.json",
+				"destination": "/case/index.json"
+			},
+			{
+				"source": "/competition.json",
+				"destination": "/competition/index.json"
+			},
+			{
+				"source": "/presentation.json",
+				"destination": "/presentation/index.json"
+			},
+			{
+				"source": "/press_release/launch.json",
+				"destination": "/press_release/launch/index.json"
+			},
+			{
+				"source": "/get/**",
+				"dynamicLinks": true
+			},
+			{
+				"source": "**",
+				"destination": "/index.html"
+			}
+		],
+		"redirects": [
+			{
+				"source" : "/aboutme",
+				"destination" : "/about_me",
+				"type" : 301
+			},
+			{
+				"source": "/facebook",
+				"destination": "https://facebook.com/wolocode",
+				"type": 302
+			},
+			{
+				"source": "/twitter",
+				"destination": "https://twitter.com/wolocode",
+				"type": 302
+			},
+			{
+				"source": "/youtube",
+				"destination": "https://www.youtube.com/channel/UCnKSws8Lro8U9Ewtf1Xi5jg",
+				"type": 302
+			},
+			{
+				"source": "/get",
+				"destination": "/get/app",
+				"type": 302
+			},
+			{
+				"source": "/droid",
+				"destination": "https://play.google.com/store/apps/details?id=codes.wolo.droid",
+				"type": 302
+			}
+		],
+		"cleanUrls": true,
+		"trailingSlash": false
+	}
+}
