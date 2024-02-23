@@ -10,4 +10,4 @@ EOF
 
 EXPOSE 80 443
 
-WORKDIR /app/Project
+WORKDIR /app
