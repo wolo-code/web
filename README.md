@@ -1,9 +1,9 @@
 # Wolo Code - web
 
 ## Technology:
-- Nginx - aggregator reverse proxy
+- Nginx - aggregator reverse proxy, docker based
 - Supports HTTPS with a self-signed certificate
-- Routes to components Wolo-code : [`web-app`](https://github.com/wolo-code/web-app) & [`web-site`](https://github.com/wolo-code/web-site)
+- Routes to components Wolo-code : [`web-app`](https://github.com/wolo-code/web-app) & [`web-site`](https://github.com/wolo-code/web-site) - both docker based
 
 ## Localhost - hosts file
 
@@ -57,3 +57,11 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out serv
 
 You may also want to add this to your trusted-root CA store  
 \- so that you are not presented with the *insecure origin* message when navigating to `local.wolo.codes`
+
+
+## Maintainence
+`Firebase` : docker based - project is to provide firebase CLI.  
+Used to setup CI; Not to be used regularly afterwards. Hence separate.
+
+## Website
+: mapped to `public` directory
