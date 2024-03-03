@@ -1,7 +1,7 @@
 #! /bin/bash
 
-/app/Tiggu/Script/build.sh /app/App/Project
-/app/Tiggu/Script/build.sh /app/Site/Project
+/app/Tiggu/build.sh /app/App/Project
+/app/Tiggu/build.sh /app/Site/Project
 
 shopt -s extglob
 
