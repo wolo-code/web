@@ -15,22 +15,24 @@
 Web
 │
 ├── App
-│   └── Project           (wolo-code\web-app)
+│   └── Project             (wolo-code\web-app)
 │       ├── interim
 │       └── public
 │
-├── Project               (wolo-code\web * this repo)
-│   ├── interim
-│   └── public
-│
 ├── Site
-│   └── Project           (wolo-code\web-site)
+│   └── Project             (wolo-code\web-site)
+|       ├── root\framework  (blank-org\cutie - submoduled)
 │       ├── interim
-│       └── public        > wolo.codes
+│       └── public
 │
-└── Tiggu                 (blank-org\tiggu)
+├── Project                 (wolo-code\web * this repo)
+│   ├── interim             (wolo-code\web-interim)
+│   └── public              (wolo-code\web-public > wolo.codes)
+|
 │
-└── Firebase              (blank-org\firebase)
+└── Tiggu                   (blank-org\tiggu)
+│
+└── Firebase                (blank-org\firebase)
 ```
 
 ## Certificate
@@ -64,4 +66,4 @@ You may also want to add this to your trusted-root CA store
 Used to setup CI; Not to be used regularly afterwards. Hence separate.
 
 ## Website
-: mapped to `public` directory
+`wolo.codes` \> mapped to `public` directory
