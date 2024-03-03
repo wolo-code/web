@@ -15,24 +15,24 @@
 Web
 │
 ├── App
-│   └── Project             (wolo-code\web-app)
+│   └── Project             (wolo-code/web-app)
 │       ├── interim
 │       └── public
 │
 ├── Site
-│   └── Project             (wolo-code\web-site)
-|       ├── root\framework  (blank-org\cutie - submoduled)
+│   └── Project             (wolo-code/web-site)
+|       ├── root\framework  (blank-org/cutie - submoduled)
 │       ├── interim
 │       └── public
 │
-├── Project                 (wolo-code\web * this repo)
-│   ├── interim             (wolo-code\web-interim)
-│   └── public              (wolo-code\web-public > wolo.codes)
+├── Project                 (wolo-code/web * this repo)
+│   ├── interim             (wolo-code/web-interim)
+│   └── public              (wolo-code/web-public > wolo.codes)
 |
 │
-└── Tiggu                   (blank-org\tiggu)
+└── Tiggu                   (blank-org/tiggu)
 │
-└── Firebase                (blank-org\firebase)
+└── Firebase                (blank-org/firebase)
 ```
 
 ## Certificate
