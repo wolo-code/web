@@ -1,9 +1,0 @@
-{
-  "projects": {
-    "dev": "waddress-5f30b",
-    "prod": "wolo-codes",
-    "default": "wolo-codes"
-  },
-  "targets": {},
-  "etags": {}
-}

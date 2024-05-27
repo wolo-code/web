@@ -1,7 +1,7 @@
 #! /bin/bash
 
-/app/Tiggu/build.sh /app/App/Project
-/app/Tiggu/build.sh /app/Site/Project
+/app/tiggu/build.sh /app/app/project
+/app/tiggu/build.sh /app/site/project
 
 shopt -s extglob
 
@@ -19,9 +19,9 @@ copy_dot_dirs() {
   done
 }
 
-# moving in app files after web files inorder to overwrite
+# moving in app files after web files in order to overwrite
 
-copy_dot_dirs /app/Site/Project/interim ./interim
-copy_dot_dirs /app/Site/Project/public ./public
-copy_dot_dirs /app/App/Project/interim ./interim
-copy_dot_dirs /app/App/Project/public ./public
+copy_dot_dirs /app/site/project/interim ./build/interim
+copy_dot_dirs /app/site/project/public ./build/public
+copy_dot_dirs /app/app/project/interim ./build/interim
+copy_dot_dirs /app/app/project/public ./build/public
