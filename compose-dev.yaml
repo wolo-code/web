@@ -4,7 +4,7 @@ services:
     image: docker/dev-environments-wolo-web-app:stable-1
     init: true
     volumes:
-      - ../app/project/conf/httpd-vhosts.conf:/etc/apache2/sites-available/000-default.conf:ro
+      - ../app/project/httpd-vhosts.conf:/etc/apache2/sites-available/000-default.conf:ro
       - type: bind
         source: /var/run/docker.sock
         target: /var/run/docker.sock
@@ -23,7 +23,7 @@ services:
     image: docker/dev-environments-wolo-web-site:stable-1
     init: true
     volumes:
-      - ../site/project/conf/httpd-vhosts.conf:/etc/apache2/sites-available/000-default.conf:ro
+      - ../site/project/httpd-vhosts.conf:/etc/apache2/sites-available/000-default.conf:ro
       - type: bind
         source: /var/run/docker.sock
         target: /var/run/docker.sock
