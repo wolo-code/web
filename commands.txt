@@ -1,0 +1,3 @@
+docker compose -f compose-dev.yaml build --no-cache
+
+docker compose -f compose-dev.yaml -p 'wolo' up -d
