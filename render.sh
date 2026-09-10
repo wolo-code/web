@@ -27,3 +27,9 @@ copy_dot_dirs site/project/interim project/build/interim
 copy_dot_dirs site/project/public project/build/public
 copy_dot_dirs app/project/interim project/build/interim
 copy_dot_dirs app/project/public project/build/public
+
+if command -v node >/dev/null 2>&1; then
+  node project/build/scripts/verify-sri.mjs --dir project/build/public
+else
+  echo "WARNING: node is not available; skipping SRI gate. Firebase Hosting CI still runs verify-sri.mjs." >&2
+fi

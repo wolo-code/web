@@ -127,6 +127,12 @@ function Invoke-WoloNativeTiggu {
         Test-WoloApacheOrigins -Origin $Origin -HostHeader $HostHeader -ProbePath $probePath
     }
 
+    if ($Kind -eq 'site') {
+        Invoke-WoloSriGate -WebsiteRoot $WebsiteRoot `
+            -SentryConfig (Join-Path $ProjectPath 'Root\Config\Vars.tsv') `
+            -SentrySrc (Join-Path $ProjectPath 'Root\Framework\JS\Fragment\Sentry_version.php')
+    }
+
     Ensure-WoloTigguUrlDirs -ProjectPath $ProjectPath
 
     $tigguUnix = ConvertTo-WoloGitBashPath -Path $tiggu
@@ -157,5 +163,31 @@ function Invoke-WoloNativeTiggu {
     }
     finally {
         Pop-Location
+    }
+
+    Invoke-WoloSriGate -WebsiteRoot $WebsiteRoot -Dir (Join-Path $ProjectPath 'public')
+}
+
+function Invoke-WoloSriGate {
+    param(
+        [Parameter(Mandatory)] [string]$WebsiteRoot,
+        [string]$Dir,
+        [string]$SentryConfig,
+        [string]$SentrySrc
+    )
+
+    $script = Join-Path $WebsiteRoot 'project\build\scripts\verify-sri.mjs'
+    if (-not (Test-Path -LiteralPath $script -PathType Leaf)) {
+        throw "SRI gate script is missing: $script"
+    }
+    $node = (Get-Command node -ErrorAction Stop).Source
+    $argList = @($script)
+    if ($Dir) { $argList += @('--dir', $Dir) }
+    if ($SentryConfig) { $argList += @('--sentry-config', $SentryConfig) }
+    if ($SentrySrc) { $argList += @('--sentry-src', $SentrySrc) }
+    Write-Host "SRI gate: $($argList -join ' ')" -ForegroundColor Cyan
+    & $node @argList
+    if ($LASTEXITCODE -ne 0) {
+        throw "SRI gate failed with exit code $LASTEXITCODE. CDN integrity hashes must match the bytes currently served."
     }
 }

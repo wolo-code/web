@@ -67,4 +67,7 @@ Copy-WoloDotDirs -SourceDir $sitePublic -DestDir $buildPublic
 Copy-WoloDotDirs -SourceDir $appInterim -DestDir $buildInterim
 Copy-WoloDotDirs -SourceDir $appPublic -DestDir $buildPublic
 
+Write-Host "=== SRI gate: merged public ===" -ForegroundColor Cyan
+Invoke-WoloSriGate -WebsiteRoot $WebsiteRoot -Dir $buildPublic
+
 Write-Host "Native render complete. Output: $buildPublic" -ForegroundColor Green
