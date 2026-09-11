@@ -59,6 +59,15 @@ You may also want to add this to your trusted-root CA store
 \- so that you are not presented with the *insecure origin* message when navigating to `local.wolo.codes`
 
 
+## Native publish gates
+
+`PublishRunner.ps1` `Invoke-WoloNativeTiggu` runs two checks so a green bake is actually clean:
+
+1. **Pre-bake** — `Root/Framework/CSS/Base` must exist and contain at least one `.css` file (Cutie Framework).
+2. **Post-bake** — scan `project/public` HTML for PHP error leakage (fatals, `scandir(` failures, Windows path dumps).
+
+Either gate throws before `public/` can be copied to web-public.
+
 ## Manage
 `Firebase` : docker based - project is to provide firebase CLI.  
 Used to setup CI; Not required afterwards - hence separate.

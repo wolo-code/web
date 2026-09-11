@@ -66,6 +66,53 @@ function Test-WoloApacheOrigins {
     }
 }
 
+function Test-WoloFrameworkCssBase {
+    param([Parameter(Mandatory)] [string]$ProjectPath)
+
+    $cssBase = Join-Path $ProjectPath 'Root\Framework\CSS\Base'
+    if (-not (Test-Path -LiteralPath $cssBase -PathType Container)) {
+        throw "Native bake gate: Cutie Framework CSS is missing: $cssBase. Ensure Root/Framework/CSS/Base exists with at least one .css file before running Tiggu."
+    }
+    $cssFiles = @(Get-ChildItem -LiteralPath $cssBase -Filter '*.css' -File -ErrorAction SilentlyContinue)
+    if ($cssFiles.Count -eq 0) {
+        throw "Native bake gate: Cutie Framework CSS/Base is empty (no .css files): $cssBase. PHP includeDir('../CSS/Base/') will fatal during bake."
+    }
+}
+
+function Test-WoloPublicHtmlClean {
+    param([Parameter(Mandatory)] [string]$PublicDir)
+
+    if (-not (Test-Path -LiteralPath $PublicDir -PathType Container)) {
+        throw "Native bake gate: Tiggu public output is missing: $PublicDir"
+    }
+
+    # Catch PHP fatals/warnings baked into HTML (e.g. missing Framework/CSS/Base after a path move).
+    $patterns = @(
+        @{ Label = 'PHP fatal error'; Regex = '(?i)fatal\s+error' },
+        @{ Label = 'PHP uncaught exception'; Regex = '(?i)uncaught' },
+        @{ Label = 'PHP scandir failure'; Regex = '(?i)scandir\s*\(' },
+        @{ Label = 'failed to open directory'; Regex = '(?i)failed to open directory' },
+        @{ Label = 'PHP HTML error line marker'; Regex = '(?i)on line <b>' },
+        @{ Label = 'Windows path leak (D:\Wolo)'; Regex = '(?i)D:\\Wolo\\' },
+        @{ Label = 'Windows path leak (E:\Web)'; Regex = '(?i)E:\\Web\\' }
+    )
+
+    $violations = [System.Collections.Generic.List[string]]::new()
+    Get-ChildItem -LiteralPath $PublicDir -Filter '*.html' -File -Recurse | ForEach-Object {
+        $content = Get-Content -LiteralPath $_.FullName -Raw -ErrorAction Stop
+        foreach ($pattern in $patterns) {
+            if ($content -match $pattern.Regex) {
+                $violations.Add("$($_.FullName): $($pattern.Label)")
+            }
+        }
+    }
+
+    if ($violations.Count -gt 0) {
+        $detail = ($violations | Select-Object -Unique) -join '; '
+        throw "Native bake gate: PHP error leakage detected in public HTML ($detail). Fix the bake before copying to web-public."
+    }
+}
+
 function Ensure-WoloTigguUrlDirs {
     param([Parameter(Mandatory)] [string]$ProjectPath)
 
@@ -122,6 +169,9 @@ function Invoke-WoloNativeTiggu {
         throw "Native renderer project does not exist: $ProjectPath"
     }
 
+    # Pre-bake: refuse to snapshot when Cutie Framework CSS/Base is missing (PHP includeDir fatals).
+    Test-WoloFrameworkCssBase -ProjectPath $ProjectPath
+
     if (-not $SkipApacheProbe) {
         $probePath = if ($Kind -eq 'site') { '/about' } else { '/' }
         Test-WoloApacheOrigins -Origin $Origin -HostHeader $HostHeader -ProbePath $probePath
@@ -164,6 +214,9 @@ function Invoke-WoloNativeTiggu {
     finally {
         Pop-Location
     }
+
+    # Post-bake: refuse publishable public/ when PHP errors were baked into HTML.
+    Test-WoloPublicHtmlClean -PublicDir (Join-Path $ProjectPath 'public')
 
     Invoke-WoloSriGate -WebsiteRoot $WebsiteRoot -Dir (Join-Path $ProjectPath 'public')
 }
