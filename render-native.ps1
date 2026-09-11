@@ -36,17 +36,13 @@ function Copy-WoloDotDirs {
         New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
     }
 
-    # Copy visible contents (do not wipe DestDir — preserve firebase.json siblings at build root)
-    Get-ChildItem -LiteralPath $SourceDir -Force | ForEach-Object {
-        $name = $_.Name
-        if ($name -eq '.' -or $name -eq '..' -or $name -eq '.git') { return }
-        $dest = Join-Path $DestDir $name
-        if ($_.PSIsContainer) {
-            Copy-Item -LiteralPath $_.FullName -Destination $dest -Recurse -Force
-        } else {
-            Copy-Item -LiteralPath $_.FullName -Destination $dest -Force
-        }
+    # Merge into DestDir. Copy-Item -Recurse onto an existing folder nests
+    # source\about into dest\about\about and leaves stale dest\about\index.html.
+    $rc = & robocopy.exe $SourceDir $DestDir /E /XD .git /NFL /NDL /NJH /NJS /nc /ns /np
+    if ($LASTEXITCODE -ge 8) {
+        throw "robocopy failed ($LASTEXITCODE) from $SourceDir to $DestDir"
     }
+    $null = $rc
 }
 
 Write-Host "=== Native Tiggu: app ===" -ForegroundColor Cyan
