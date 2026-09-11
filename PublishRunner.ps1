@@ -59,7 +59,7 @@ function Test-WoloApacheOrigins {
         $headers = & curl.exe -sI -H "Host: $HostHeader" $uri 2>&1
         $status = ($headers | Select-Object -First 1)
         if ($status -notmatch 'HTTP/\S+\s+200') {
-            throw "Apache probe failed for $uri (Host: $HostHeader): $status. Ensure Apachehttpd is running (may need UAC) and Caddy/hosts are configured. See E:\AGENTS.md."
+            throw "Apache probe failed for $uri (Host: $HostHeader): $status. Ensure Apachehttpd is running (may need UAC) and Caddy/hosts are configured. See D:\Wolo\Web\AGENTS.md."
         }
     } catch {
         throw "Apache probe error for $uri (Host: $HostHeader): $_. Apache :8084/:8085 must be up before native Tiggu."
@@ -98,7 +98,7 @@ function Ensure-WoloTigguUrlDirs {
 function Invoke-WoloNativeTiggu {
     param(
         [Parameter(Mandatory)] [ValidateSet('site', 'app')] [string]$Kind,
-        [string]$WebsiteRoot = 'E:\Web',
+        [string]$WebsiteRoot = 'D:\Wolo\Web',
         [string]$ProjectPath,
         [string]$Origin,
         [string]$HostHeader = 'wolo.local',
