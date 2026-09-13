@@ -2,6 +2,10 @@
 
 cd /app
 
+if [ "${TIGGU_SKIP_BUILD_INCREMENT:-0}" != "1" ]; then
+  node app/project/scripts/increment-build-number.js app/project/Root/Config/Vars.tsv
+fi
+
 tiggu/build.sh app/project
 tiggu/build.sh site/project
 

@@ -5,7 +5,8 @@
 param(
     [string]$WebsiteRoot = 'E:\Web',
     [switch]$SkipScriptVersioning,
-    [switch]$SkipApacheProbe
+    [switch]$SkipApacheProbe,
+    [switch]$SkipBuildIncrement
 )
 
 Set-StrictMode -Version Latest
@@ -43,6 +44,17 @@ function Copy-WoloDotDirs {
         throw "robocopy failed ($LASTEXITCODE) from $SourceDir to $DestDir"
     }
     $null = $rc
+}
+
+if (-not $SkipBuildIncrement) {
+    Write-Host "=== Increment app build number ===" -ForegroundColor Cyan
+    $incrementScript = Join-Path $WebsiteRoot 'app\project\scripts\increment-build-number.js'
+    $varsPath = Join-Path $WebsiteRoot 'app\project\Root\Config\Vars.tsv'
+    $node = (Get-Command node -ErrorAction Stop).Source
+    & $node $incrementScript $varsPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "App build-number increment failed with exit code $LASTEXITCODE."
+    }
 }
 
 Write-Host "=== Native Tiggu: app ===" -ForegroundColor Cyan
