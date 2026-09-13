@@ -73,7 +73,11 @@ Either gate throws before `public/` can be copied to web-public.
 Used to setup CI; Not required afterwards - hence separate.
 
 ## Website
-`wolo.codes` \> mapped to `public` directory
+`wolo.codes` \> mapped to `public` directory (`prod` Firebase project `wolo-codes`).
+`dev.wolo.codes` \> same bake, Firebase project `waddress-5f30b` (`dev` in `.firebaserc`).
+
+## Operator console
+Local OliveTin at `D:\Wolo\Web\console` (`wolo-code/console`). Caddy: `console.wolo.local` → `127.0.0.1:47822`. Start `console\Start-Console.ps1`. Use it to render, deploy development, or push production.
 
 ## Setup
 - Run following script to setup the directory structure & repos
@@ -100,6 +104,7 @@ clone_repo "project" "https://github.com/wolo-code/web.git"
 clone_repo "project/interim" "https://github.com/wolo-code/web-interim.git"
 clone_repo "project/public" "https://github.com/wolo-code/web-public.git"
 clone_repo "tiggu" "https://github.com/blank-org/tiggu.git"
+clone_repo "console" "https://github.com/wolo-code/console.git"
 # clone_repo "firebase" "https://github.com/blank-org/firebase.git"
 ```
 

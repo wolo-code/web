@@ -3,7 +3,7 @@
 # into project/build so the app overwrites (owns /).
 [CmdletBinding()]
 param(
-    [string]$WebsiteRoot = 'E:\Web',
+    [string]$WebsiteRoot = 'D:\Wolo\Web',
     [switch]$SkipScriptVersioning,
     [switch]$SkipApacheProbe,
     [switch]$SkipBuildIncrement
