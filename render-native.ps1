@@ -1,9 +1,11 @@
-# Native (Dockerless) production merge for wolo.codes.
+# Native (Dockerless) production and development merge for wolo.codes.
 # Mirrors project/render.sh: bake app, bake site, then copy site public THEN app public
-# into project/build so the app overwrites (owns /).
+# into project/build (prod) or project/build-dev (dev) so the app overwrites (owns /).
 [CmdletBinding()]
 param(
     [string]$WebsiteRoot = 'D:\Wolo\Web',
+    [ValidateSet('prod', 'dev')] [string]$Mode = 'prod',
+    [string]$OutputDir,
     [switch]$SkipScriptVersioning,
     [switch]$SkipApacheProbe,
     [switch]$SkipBuildIncrement
@@ -14,7 +16,16 @@ $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'PublishRunner.ps1')
 
-$buildRoot = Join-Path $WebsiteRoot 'project\build'
+if ($OutputDir) {
+    $buildRoot = $OutputDir
+}
+elseif ($Mode -eq 'dev') {
+    $buildRoot = Join-Path $WebsiteRoot 'project\build-dev'
+}
+else {
+    $buildRoot = Join-Path $WebsiteRoot 'project\build'
+}
+
 $buildInterim = Join-Path $buildRoot 'interim'
 $buildPublic = Join-Path $buildRoot 'public'
 
@@ -46,7 +57,7 @@ function Copy-WoloDotDirs {
     $null = $rc
 }
 
-if (-not $SkipBuildIncrement) {
+if (-not $SkipBuildIncrement -and $Mode -eq 'prod') {
     Write-Host "=== Increment app build number ===" -ForegroundColor Cyan
     $incrementScript = Join-Path $WebsiteRoot 'app\project\scripts\increment-build-number.js'
     $varsPath = Join-Path $WebsiteRoot 'app\project\Root\Config\Vars.tsv'
@@ -57,14 +68,14 @@ if (-not $SkipBuildIncrement) {
     }
 }
 
-Write-Host "=== Native Tiggu: app ===" -ForegroundColor Cyan
-Invoke-WoloNativeTiggu -Kind app -WebsiteRoot $WebsiteRoot -SkipScriptVersioning:$SkipScriptVersioning -SkipApacheProbe:$SkipApacheProbe
+Write-Host "=== Native Tiggu: app ($Mode) ===" -ForegroundColor Cyan
+Invoke-WoloNativeTiggu -Kind app -WebsiteRoot $WebsiteRoot -Mode $Mode -SkipScriptVersioning:$SkipScriptVersioning -SkipApacheProbe:$SkipApacheProbe
 
-Write-Host "=== Native Tiggu: site ===" -ForegroundColor Cyan
-Invoke-WoloNativeTiggu -Kind site -WebsiteRoot $WebsiteRoot -SkipScriptVersioning:$SkipScriptVersioning -SkipApacheProbe:$SkipApacheProbe
+Write-Host "=== Native Tiggu: site ($Mode) ===" -ForegroundColor Cyan
+Invoke-WoloNativeTiggu -Kind site -WebsiteRoot $WebsiteRoot -Mode $Mode -SkipScriptVersioning:$SkipScriptVersioning -SkipApacheProbe:$SkipApacheProbe
 
 # Same order as render.sh: site first, then app (app overwrites for index.html etc.)
-Write-Host "=== Merge into project/build (site then app) ===" -ForegroundColor Cyan
+Write-Host "=== Merge into $buildRoot (site then app) ===" -ForegroundColor Cyan
 $siteInterim = Join-Path $WebsiteRoot 'site\project\interim'
 $sitePublic = Join-Path $WebsiteRoot 'site\project\public'
 $appInterim = Join-Path $WebsiteRoot 'app\project\interim'
@@ -75,7 +86,26 @@ Copy-WoloDotDirs -SourceDir $sitePublic -DestDir $buildPublic
 Copy-WoloDotDirs -SourceDir $appInterim -DestDir $buildInterim
 Copy-WoloDotDirs -SourceDir $appPublic -DestDir $buildPublic
 
+$prodBuild = Join-Path $WebsiteRoot 'project\build'
+if ($buildRoot -ne $prodBuild) {
+    $prodFirebaseJson = Join-Path $prodBuild 'firebase.json'
+    if (Test-Path -LiteralPath $prodFirebaseJson -PathType Leaf) {
+        Copy-Item -LiteralPath $prodFirebaseJson -Destination (Join-Path $buildRoot 'firebase.json') -Force
+    }
+    $prodScripts = Join-Path $prodBuild 'scripts'
+    if (Test-Path -LiteralPath $prodScripts -PathType Container) {
+        $destScripts = Join-Path $buildRoot 'scripts'
+        if (-not (Test-Path -LiteralPath $destScripts -PathType Container)) {
+            New-Item -ItemType Directory -Path $destScripts -Force | Out-Null
+        }
+        $rc = & robocopy.exe $prodScripts $destScripts /E /NFL /NDL /NJH /NJS /nc /ns /np
+        if ($LASTEXITCODE -ge 8) {
+            throw "robocopy failed ($LASTEXITCODE) copying scripts to $destScripts"
+        }
+    }
+}
+
 Write-Host "=== SRI gate: merged public ===" -ForegroundColor Cyan
 Invoke-WoloSriGate -WebsiteRoot $WebsiteRoot -Dir $buildPublic
 
-Write-Host "Native render complete. Output: $buildPublic" -ForegroundColor Green
+Write-Host "Native render complete ($Mode). Output: $buildPublic" -ForegroundColor Green

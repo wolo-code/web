@@ -149,6 +149,7 @@ function Invoke-WoloNativeTiggu {
         [string]$ProjectPath,
         [string]$Origin,
         [string]$HostHeader = 'wolo.local',
+        [ValidateSet('prod', 'dev')] [string]$Mode = 'prod',
         [switch]$SkipScriptVersioning,
         [switch]$SkipApacheProbe
     )
@@ -198,12 +199,13 @@ function Invoke-WoloNativeTiggu {
     $command = 'export PATH=/usr/bin:/mingw64/bin:/bin; ' +
         'export TIGGU_ORIGIN="' + $Origin + '"; ' +
         'export TIGGU_HOST_HEADER="' + $HostHeader + '"; ' +
+        'export TIGGU_MODE="' + $Mode + '"; ' +
         $(if ($SkipScriptVersioning) { 'export TIGGU_SKIP_SCRIPT_VERSIONING=1; ' } else { '' }) +
         'export TIGGU_MINIFY="' + $minifyUnix + '"; ' +
         'export TIGGU_CLOSURE_JAR="' + $closureUnix + '"; ' +
         'export TIGGU_JAVA="' + $javaUnix + '"; ' +
         'export TIGGU_NATIVE_PYTHON="' + $pythonUnix + '"; ' +
-        '"' + $tigguUnix + '" "' + $projectUnix + '"'
+        '"' + $tigguUnix + '" "' + $projectUnix + '" "' + $Mode + '"'
     Push-Location $WebsiteRoot
     try {
         & $bash --noprofile --norc -c $command
