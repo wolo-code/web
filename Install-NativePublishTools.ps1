@@ -1,10 +1,19 @@
 [CmdletBinding()]
 param(
-    [string]$WebsiteRoot = 'E:\Web'
+    [string]$WebsiteRoot = 'D:\Wolo\Web'
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+if (-not $WebsiteRoot -or -not (Test-Path -LiteralPath $WebsiteRoot)) {
+    $parentDir = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+    if (Test-Path -LiteralPath (Join-Path $parentDir '.native-tools')) {
+        $WebsiteRoot = $parentDir
+    } else {
+        $WebsiteRoot = 'D:\Wolo\Web'
+    }
+}
 
 $minifyVersion = '2.24.17'
 $minifyHash = 'A854E283026752C34CF0C69FE574854526ADDA50721244285C53CF0C195F23B0'
@@ -15,6 +24,7 @@ $minifyZip = Join-Path $toolsRoot 'minify_windows_amd64.zip'
 $minifyDirectory = Join-Path $toolsRoot 'minify'
 $minifyExe = Join-Path $minifyDirectory 'minify.exe'
 $closureJar = Join-Path $toolsRoot "closure-compiler-$closureVersion.jar"
+$canonicalClosureJar = Join-Path $toolsRoot 'closure-compiler.jar'
 
 New-Item -ItemType Directory -Path $toolsRoot -Force | Out-Null
 
@@ -54,6 +64,26 @@ Get-PinnedDownload `
     -Url "https://repo1.maven.org/maven2/com/google/javascript/closure-compiler/$closureVersion/closure-compiler-$closureVersion.jar" `
     -Destination $closureJar `
     -Sha256 $closureHash
+
+Copy-Item -LiteralPath $closureJar -Destination $canonicalClosureJar -Force
+
+$toolchainJsonPath = Join-Path $toolsRoot 'toolchain.json'
+if (-not (Test-Path -LiteralPath $toolchainJsonPath -PathType Leaf)) {
+    $meta = [pscustomobject]@{
+        closureCompiler = [pscustomobject]@{
+            version   = $closureVersion
+            jar       = "closure-compiler-$closureVersion.jar"
+            sha256    = $closureHash
+            updatedAt = (Get-Date).ToString('o')
+        }
+        minify = [pscustomobject]@{
+            version   = $minifyVersion
+            sha256    = $minifyHash
+            updatedAt = (Get-Date).ToString('o')
+        }
+    }
+    [System.IO.File]::WriteAllText($toolchainJsonPath, ($meta | ConvertTo-Json -Depth 4), [System.Text.Encoding]::UTF8)
+}
 
 # Preferred Java for Closure Compiler (same pin as ujnotes). Document fallbacks if missing.
 $preferredJava = 'C:\Program Files\Android\Android Studio\jbr\bin\java.exe'

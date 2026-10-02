@@ -23,7 +23,35 @@ function Get-WoloNativeToolchain {
 
     $toolsRoot = Join-Path $WebsiteRoot '.native-tools'
     $minify = Join-Path $toolsRoot 'minify\minify.exe'
-    $closure = Join-Path $toolsRoot 'closure-compiler-v20250402.jar'
+    $closure = $null
+    $toolchainJsonPath = Join-Path $toolsRoot 'toolchain.json'
+    if (Test-Path -LiteralPath $toolchainJsonPath -PathType Leaf) {
+        try {
+            $toolchainMeta = Get-Content -LiteralPath $toolchainJsonPath -Raw | ConvertFrom-Json
+            if ($toolchainMeta.closureCompiler -and $toolchainMeta.closureCompiler.jar) {
+                $candidate = Join-Path $toolsRoot $toolchainMeta.closureCompiler.jar
+                if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                    $closure = $candidate
+                }
+            }
+        } catch { }
+    }
+    if (-not $closure) {
+        $canonical = Join-Path $toolsRoot 'closure-compiler.jar'
+        if (Test-Path -LiteralPath $canonical -PathType Leaf) {
+            $closure = $canonical
+        }
+    }
+    if (-not $closure) {
+        $jars = @(Get-ChildItem -LiteralPath $toolsRoot -Filter 'closure-compiler-*.jar' -File -ErrorAction SilentlyContinue |
+            Sort-Object -Property Name -Descending)
+        if ($jars.Count -gt 0) {
+            $closure = $jars[0].FullName
+        }
+    }
+    if (-not $closure) {
+        $closure = Join-Path $toolsRoot 'closure-compiler-v20250402.jar'
+    }
     $java = 'C:\Program Files\Android\Android Studio\jbr\bin\java.exe'
     if (-not (Test-Path -LiteralPath $java -PathType Leaf)) {
         foreach ($candidate in @(

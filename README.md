@@ -77,7 +77,12 @@ Used to setup CI; Not required afterwards - hence separate.
 `dev.wolo.codes` \> same bake, Firebase project `waddress-5f30b` (`dev` in `.firebaserc`).
 
 ## Operator console
-Local OliveTin at `D:\Wolo\Web\console` (`wolo-code/console`). Caddy: `console.wolo.local` → `127.0.0.1:47822`. Start `console\Start-Console.ps1`. Use it to render, deploy development, or push production.
+Local OliveTin at `D:\Wolo\Web\console` (`wolo-code/console`). Caddy: `console.wolo.local` → `127.0.0.1:47822`. Start `console\Start-Console.ps1`. Use it to check tool updates, update publishing tools, render, deploy development, or push production.
+
+## Native publishing tools
+- Install initial toolchain: `Install-NativePublishTools.ps1` (downloads minify & Closure Compiler to `D:\Wolo\Web\.native-tools`).
+- Check and update toolchain: `Update-NativePublishTools.ps1` (supports `-CheckOnly`, `-Tool all|closure-compiler|minify`, `-Force`, `-CleanOldVersions`).
+- In the OliveTin console: use **Check tool updates** and **Update publishing tools** actions in the **Test** row.
 
 ## Setup
 - Run following script to setup the directory structure & repos
