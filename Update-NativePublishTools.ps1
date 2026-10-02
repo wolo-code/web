@@ -50,6 +50,65 @@ function Get-WoloJava {
     return $null
 }
 
+function Invoke-ClosureCompilerJava {
+    param(
+        [Parameter(Mandatory)] [string]$JavaPath,
+        [Parameter(Mandatory)] [string[]]$ArgumentList
+    )
+
+    $extraArgs = @()
+    try {
+        & $JavaPath --sun-misc-unsafe-memory-access=allow -version 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            $extraArgs += '--sun-misc-unsafe-memory-access=allow'
+        }
+    } catch { }
+
+    & $JavaPath @extraArgs @ArgumentList
+}
+
+function Ensure-WoloJavaClosureWrapper {
+    param(
+        [Parameter(Mandatory)] [string]$ToolsRoot,
+        [Parameter(Mandatory)] [string]$JavaPath
+    )
+
+    $wrapperPath = Join-Path $ToolsRoot 'java-closure.sh'
+    $full = [System.IO.Path]::GetFullPath($JavaPath)
+    $javaUnix = if ($full -match '^([A-Za-z]):\\(.*)$') {
+        '/' + $Matches[1].ToLowerInvariant() + '/' + ($Matches[2] -replace '\\', '/')
+    } else {
+        $full -replace '\\', '/'
+    }
+
+    $supportsUnsafeFlag = $false
+    try {
+        & $JavaPath --sun-misc-unsafe-memory-access=allow -version 2>&1 | Out-Null
+        $supportsUnsafeFlag = ($LASTEXITCODE -eq 0)
+    } catch {
+        $supportsUnsafeFlag = $false
+    }
+
+    $extraArgs = if ($supportsUnsafeFlag) { ' --sun-misc-unsafe-memory-access=allow' } else { '' }
+    $scriptContent = "#!/usr/bin/env bash`nexec `"$javaUnix`"$extraArgs `"`$@`"`n"
+
+    $needsWrite = $true
+    if (Test-Path -LiteralPath $wrapperPath -PathType Leaf) {
+        try {
+            $existing = [System.IO.File]::ReadAllText($wrapperPath)
+            if ($existing -eq $scriptContent) {
+                $needsWrite = $false
+            }
+        } catch { }
+    }
+
+    if ($needsWrite) {
+        [System.IO.File]::WriteAllText($wrapperPath, $scriptContent, [System.Text.UTF8Encoding]::new($false))
+    }
+
+    return $wrapperPath
+}
+
 function Get-ToolchainMetadata {
     if (Test-Path -LiteralPath $toolchainJsonPath -PathType Leaf) {
         try {
@@ -94,7 +153,7 @@ function Get-InstalledClosureCompilerInfo {
 
     if ($java) {
         try {
-            $output = & $java -jar $targetJar --version 2>&1
+            $output = Invoke-ClosureCompilerJava -JavaPath $java -ArgumentList @('-jar', $targetJar, '--version') 2>&1
             if ($LASTEXITCODE -eq 0) {
                 $verLine = ($output | Where-Object { $_ -match 'Version:\s*(v?\d+)' } | Select-Object -First 1)
                 if ($verLine -and $verLine -match 'Version:\s*(v?\d+)') {
@@ -254,13 +313,14 @@ function Update-WoloClosureCompiler {
         }
 
         Write-Host "Verifying Closure Compiler execution..."
-        $testOut = & $java -jar $tempFile --version 2>&1
+        $testOut = Invoke-ClosureCompilerJava -JavaPath $java -ArgumentList @('-jar', $tempFile, '--version') 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "Closure Compiler validation failed: $testOut"
         }
 
         Move-Item -LiteralPath $tempFile -Destination $destJar -Force
         Copy-Item -LiteralPath $destJar -Destination $canonicalJar -Force
+        Ensure-WoloJavaClosureWrapper -ToolsRoot $toolsRoot -JavaPath $java | Out-Null
 
         $meta = Get-ToolchainMetadata
         $meta | Add-Member -NotePropertyName 'closureCompiler' -NotePropertyValue ([pscustomobject]@{

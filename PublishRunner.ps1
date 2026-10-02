@@ -68,11 +68,51 @@ function Get-WoloNativeToolchain {
             throw "Native publishing dependency is missing: $required. Run Install-NativePublishTools.ps1."
         }
     }
+    $javaWrapper = Ensure-WoloJavaClosureWrapper -ToolsRoot $toolsRoot -JavaPath $java
     return [pscustomobject]@{
         Minify = $minify
         Closure = $closure
         Java = $java
+        JavaWrapper = $javaWrapper
     }
+}
+
+function Ensure-WoloJavaClosureWrapper {
+    param(
+        [Parameter(Mandatory)] [string]$ToolsRoot,
+        [Parameter(Mandatory)] [string]$JavaPath
+    )
+
+    $wrapperPath = Join-Path $ToolsRoot 'java-closure.sh'
+    $javaUnix = ConvertTo-WoloGitBashPath -Path $JavaPath
+
+    # Silence JEP 471 sun.misc.Unsafe terminal deprecation warnings in modern JDKs (Java 23+)
+    $supportsUnsafeFlag = $false
+    try {
+        & $JavaPath --sun-misc-unsafe-memory-access=allow -version 2>&1 | Out-Null
+        $supportsUnsafeFlag = ($LASTEXITCODE -eq 0)
+    } catch {
+        $supportsUnsafeFlag = $false
+    }
+
+    $extraArgs = if ($supportsUnsafeFlag) { ' --sun-misc-unsafe-memory-access=allow' } else { '' }
+    $scriptContent = "#!/usr/bin/env bash`nexec `"$javaUnix`"$extraArgs `"`$@`"`n"
+
+    $needsWrite = $true
+    if (Test-Path -LiteralPath $wrapperPath -PathType Leaf) {
+        try {
+            $existing = [System.IO.File]::ReadAllText($wrapperPath)
+            if ($existing -eq $scriptContent) {
+                $needsWrite = $false
+            }
+        } catch { }
+    }
+
+    if ($needsWrite) {
+        [System.IO.File]::WriteAllText($wrapperPath, $scriptContent, [System.Text.UTF8Encoding]::new($false))
+    }
+
+    return $wrapperPath
 }
 
 function Test-WoloApacheOrigins {
@@ -219,7 +259,7 @@ function Invoke-WoloNativeTiggu {
     $toolchain = Get-WoloNativeToolchain -WebsiteRoot $WebsiteRoot
     $minifyUnix = ConvertTo-WoloGitBashPath -Path $toolchain.Minify
     $closureUnix = ConvertTo-WoloGitBashPath -Path $toolchain.Closure
-    $javaUnix = ConvertTo-WoloGitBashPath -Path $toolchain.Java
+    $javaUnix = ConvertTo-WoloGitBashPath -Path $toolchain.JavaWrapper
     $pythonPath = (Get-Command python -ErrorAction Stop).Source
     $pythonUnix = ConvertTo-WoloGitBashPath -Path $pythonPath
     # Do not inherit Windows PATH: a curl-based wget shim in ~/bin returns HTTP 404
