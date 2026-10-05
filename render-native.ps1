@@ -105,6 +105,12 @@ if ($buildRoot -ne $prodBuild) {
     }
 }
 
+Write-Host "=== Generate offline manifest from the final merged bundle ===" -ForegroundColor Cyan
+$manifestGenerator = Join-Path $WebsiteRoot 'app\project\scripts\generate-precache-manifest.js'
+$manifestOutput = Join-Path $buildPublic 'precache-manifest.json'
+& node $manifestGenerator --public-dir $buildPublic --output $manifestOutput
+if ($LASTEXITCODE -ne 0) { throw 'Final offline manifest generation failed.' }
+
 Write-Host "=== SRI gate: merged public ===" -ForegroundColor Cyan
 Invoke-WoloSriGate -WebsiteRoot $WebsiteRoot -Dir $buildPublic
 
