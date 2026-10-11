@@ -68,6 +68,18 @@ if (-not $SkipBuildIncrement -and $Mode -eq 'prod') {
     }
 }
 
+Write-Host "=== Synchronize wordlist from wordlist.wcodes.org ===" -ForegroundColor Cyan
+$syncWordlistScript = Join-Path $WebsiteRoot 'app\project\scripts\sync-wordlist.js'
+if (Test-Path -LiteralPath $syncWordlistScript -PathType Leaf) {
+    $node = (Get-Command node -ErrorAction Stop).Source
+    try {
+        & $node $syncWordlistScript
+    }
+    catch {
+        Write-Warning "Could not fetch wordlist from wordlist.wcodes.org: $_. Using existing WordList.json."
+    }
+}
+
 Write-Host "=== Native Tiggu: app ($Mode) ===" -ForegroundColor Cyan
 Invoke-WoloNativeTiggu -Kind app -WebsiteRoot $WebsiteRoot -Mode $Mode -SkipScriptVersioning:$SkipScriptVersioning -SkipApacheProbe:$SkipApacheProbe
 
