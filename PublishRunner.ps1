@@ -52,12 +52,18 @@ function Get-WoloNativeToolchain {
     if (-not $closure) {
         $closure = Join-Path $toolsRoot 'closure-compiler-v20250402.jar'
     }
-    $java = 'C:\Program Files\Android\Android Studio\jbr\bin\java.exe'
-    if (-not (Test-Path -LiteralPath $java -PathType Leaf)) {
+    $java = $null
+    $javaCmd = Get-Command java -ErrorAction SilentlyContinue
+    if ($javaCmd -and $javaCmd.Source -and (Test-Path -LiteralPath $javaCmd.Source -PathType Leaf)) {
+        $java = $javaCmd.Source
+    }
+    if (-not $java) {
         foreach ($candidate in @(
+            'C:\programs\java\*\bin\java.exe',
             'C:\Program Files\Java\*\bin\java.exe',
             'C:\Program Files\Eclipse Adoptium\*\bin\java.exe',
-            'C:\Program Files\Microsoft\jdk-*\bin\java.exe'
+            'C:\Program Files\Microsoft\jdk-*\bin\java.exe',
+            'C:\Program Files\Android\Android Studio\jbr\bin\java.exe'
         )) {
             $hit = Get-Item $candidate -ErrorAction SilentlyContinue | Select-Object -First 1
             if ($hit) { $java = $hit.FullName; break }
